@@ -28,7 +28,8 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
                 .antMatchers("/", "/login**", "/webjars/**")
                 .permitAll()
                 .anyRequest()
-                .authenticated();
+                .authenticated()
+                .and().logout().logoutSuccessUrl("/").permitAll();
     }
 
 	public static void main(String[] args) {
