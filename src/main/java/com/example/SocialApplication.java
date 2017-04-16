@@ -6,12 +6,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.boot.web.servlet.ErrorPage;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
@@ -54,6 +57,12 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
         return map;
     }
 
+    @RequestMapping("/unauthenticated")
+    public String unauthenticated() {
+        return "redirect:/?error=true";
+    }
+
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.antMatcher("/**").authorizeRequests().antMatchers("/", "/login**", "/webjars/**").permitAll().anyRequest()
@@ -73,6 +82,17 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
             http
                     .antMatcher("/me")
                     .authorizeRequests().anyRequest().authenticated();
+        }
+    }
+
+    @Configuration
+    public class ServletCustomizer {
+        @Bean
+        public EmbeddedServletContainerCustomizer customizer() {
+            return container -> {
+                container.addErrorPages(
+                        new ErrorPage(HttpStatus.UNAUTHORIZED, "/unauthenticated"));
+            };
         }
     }
 
@@ -138,3 +158,5 @@ class ClientResources {
         return resource;
     }
 }
+
+
